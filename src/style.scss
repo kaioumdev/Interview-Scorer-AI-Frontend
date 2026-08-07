@@ -1,8 +1,11 @@
+@use "variables" as *;
 @use "./style/button.scss";
 
-* {
-    margin: 0%;
-    padding: 0%;
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
 }
 
@@ -10,11 +13,66 @@ html,
 body,
 #root {
     width: 100%;
-    background-color: #161616;
-    color: whitesmoke;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: $bg-page;
+    color: $text-primary;
+    font-family: $font-stack;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-.highlight{
-    color: #d20d3b;
+// Accessible focus ring — visible for keyboard nav, hidden for mouse
+:focus-visible {
+    outline: 2px solid $accent;
+    outline-offset: 2px;
+}
+
+// Shared full-screen loading/error fallback
+.loading-screen {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    background-color: $bg-page;
+
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba($accent, 0.2);
+        border-top-color: $accent;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+    }
+
+    p {
+        color: $text-muted;
+        font-size: 0.95rem;
+    }
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+// Skeleton shimmer animation
+@keyframes shimmer {
+    0%   { background-position: -800px 0; }
+    100% { background-position: 800px 0; }
+}
+
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        $bg-card 25%,
+        $bg-panel 50%,
+        $bg-card 75%
+    );
+    background-size: 800px 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 0.4rem;
+}
+
+.highlight {
+    color: $accent;
 }

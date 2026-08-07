@@ -1,20 +1,49 @@
-.button{
+@use "sass:color";
+@use "variables" as *;
 
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
     border: none;
     outline: none;
     padding-inline: 1.5rem;
     padding-block: 0.75rem;
-    border-radius: 1rem;
+    border-radius: 0.75rem;
     cursor: pointer;
+    font-family: $font-stack;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: opacity 0.2s, transform 0.15s;
+    text-decoration: none;
 
-    transition: all 0.3s ease-in-out;
-
-    &.primary-button{
-        background-color: #e1034d;
-        color: white;
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none !important;
     }
 
-    &:active{
-        transform: scale(0.9);
+    &.primary-button {
+        background: linear-gradient(135deg, $accent 0%, color.adjust($accent, $lightness: -10%) 100%);
+        color: #fff;
+
+        &:hover:not(:disabled) {
+            opacity: 0.88;
+        }
+    }
+
+    &.ghost-button {
+        background: transparent;
+        border: 1px solid $border-color;
+        color: $text-primary;
+
+        &:hover:not(:disabled) {
+            background-color: $bg-panel;
+        }
+    }
+
+    &:active:not(:disabled) {
+        transform: scale(0.97);
     }
 }
