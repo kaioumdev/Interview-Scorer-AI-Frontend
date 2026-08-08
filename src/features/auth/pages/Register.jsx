@@ -3,15 +3,16 @@ import { useNavigate, Link } from 'react-router'
 import { toast } from 'sonner'
 import "../auth.form.scss"
 import { useAuth } from '../hooks/useAuth'
+import { AppError } from '../../../lib/api'
 
 const Register = () => {
     const navigate = useNavigate()
     const { handleRegister } = useAuth()
 
     const [username, setUsername] = useState("")
-    const [email, setEmail] = useState("")
+    const [email, setEmail]       = useState("")
     const [password, setPassword] = useState("")
-    const [errors, setErrors] = useState({})
+    const [errors, setErrors]     = useState({})
     const [submitting, setSubmitting] = useState(false)
 
     const validate = () => {
@@ -31,12 +32,19 @@ const Register = () => {
         if (Object.keys(e).length) { setErrors(e); return }
         setErrors({})
         setSubmitting(true)
+
         try {
             await handleRegister({ username, email, password })
             toast.success("Account created! Welcome aboard.")
             navigate("/")
         } catch (err) {
-            toast.error(err.message)
+            if (err instanceof AppError && err.type === "network") {
+                toast.error("No connection. Please check your internet and try again.")
+            } else if (err instanceof AppError && err.type === "rateLimit") {
+                toast.warning("Too many attempts. Please wait a moment before trying again.")
+            } else {
+                toast.error(err.message)
+            }
         } finally {
             setSubmitting(false)
         }
@@ -45,7 +53,6 @@ const Register = () => {
     return (
         <div className="auth-page">
             <div className="auth-card">
-                {/* Brand */}
                 <div className="auth-brand">
                     <div className="auth-brand__icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
@@ -56,7 +63,6 @@ const Register = () => {
                     <p>Start preparing smarter with AI</p>
                 </div>
 
-                {/* Form */}
                 <form className="auth-form" onSubmit={handleSubmit} noValidate>
                     <div className="input-group">
                         <label htmlFor="username">Username</label>
@@ -68,6 +74,7 @@ const Register = () => {
                             onChange={e => setUsername(e.target.value)}
                             className={errors.username ? "input--error" : ""}
                             aria-describedby={errors.username ? "username-error" : undefined}
+                            autoComplete="username"
                         />
                         {errors.username && <p id="username-error" className="input-error-msg">{errors.username}</p>}
                     </div>
@@ -82,6 +89,7 @@ const Register = () => {
                             onChange={e => setEmail(e.target.value)}
                             className={errors.email ? "input--error" : ""}
                             aria-describedby={errors.email ? "email-error" : undefined}
+                            autoComplete="email"
                         />
                         {errors.email && <p id="email-error" className="input-error-msg">{errors.email}</p>}
                     </div>
@@ -96,6 +104,7 @@ const Register = () => {
                             onChange={e => setPassword(e.target.value)}
                             className={errors.password ? "input--error" : ""}
                             aria-describedby={errors.password ? "password-error" : undefined}
+                            autoComplete="new-password"
                         />
                         {errors.password && <p id="password-error" className="input-error-msg">{errors.password}</p>}
                     </div>

@@ -1,13 +1,36 @@
-import { getAllInterviewReports, generateInterviewReport, getInterviewReportById, generateResumePdf } from "../services/interview.api"
 import { useContext } from "react"
 import { InterviewContext } from "../interview.context"
+import { AppError } from "../../../lib/api"
+import {
+    getAllInterviewReports,
+    generateInterviewReport,
+    getInterviewReportById,
+    generateResumePdf
+} from "../services/interview.api"
 
+// ── User-friendly messages keyed by AppError type ─────────────────────────────
+const FALLBACK_MESSAGES = {
+    network:    "No internet connection. Please check your network and try again.",
+    rateLimit:  "You've reached the hourly limit. Please wait a moment and try again.",
+    server:     "Something went wrong on our end. Please try again in a few moments.",
+    auth:       "Your session has expired. Please sign in again.",
+    validation: "Invalid request. Please check your input.",
+    unknown:    "An unexpected error occurred. Please try again."
+}
+
+function toAppError(err, fallback) {
+    if (err instanceof AppError) return err
+    return new AppError(err?.message || fallback, 0, "unknown")
+}
+
+// ── Hook ───────────────────────────────────────────────────────────────────────
 export const useInterview = () => {
     const context = useContext(InterviewContext)
     if (!context) throw new Error("useInterview must be used within an InterviewProvider")
 
     const { loading, setLoading, report, setReport, reports, setReports } = context
 
+    // ── Generate report ────────────────────────────────────────────────────────
     const generateReport = async ({ jobDescription, selfDescription, resumeFile }) => {
         setLoading(true)
         try {
@@ -15,13 +38,13 @@ export const useInterview = () => {
             setReport(response.interviewReport)
             return response.interviewReport
         } catch (err) {
-            const message = err?.response?.data?.message || "Failed to generate report. Please try again."
-            throw new Error(message)
+            throw toAppError(err, FALLBACK_MESSAGES.unknown)
         } finally {
             setLoading(false)
         }
     }
 
+    // ── Get single report ──────────────────────────────────────────────────────
     const getReportById = async (interviewId) => {
         setLoading(true)
         try {
@@ -29,13 +52,13 @@ export const useInterview = () => {
             setReport(response.interviewReport)
             return response.interviewReport
         } catch (err) {
-            const message = err?.response?.data?.message || "Failed to load report."
-            throw new Error(message)
+            throw toAppError(err, FALLBACK_MESSAGES.unknown)
         } finally {
             setLoading(false)
         }
     }
 
+    // ── Get all reports ────────────────────────────────────────────────────────
     const getReports = async () => {
         setLoading(true)
         try {
@@ -43,13 +66,13 @@ export const useInterview = () => {
             setReports(response.interviewReports)
             return response.interviewReports
         } catch (err) {
-            const message = err?.response?.data?.message || "Failed to load reports."
-            throw new Error(message)
+            throw toAppError(err, FALLBACK_MESSAGES.unknown)
         } finally {
             setLoading(false)
         }
     }
 
+    // ── Download resume PDF ────────────────────────────────────────────────────
     const getResumePdf = async (interviewReportId) => {
         setLoading(true)
         try {
@@ -63,8 +86,7 @@ export const useInterview = () => {
             link.remove()
             window.URL.revokeObjectURL(url)
         } catch (err) {
-            const message = err?.response?.data?.message || "Failed to generate resume PDF."
-            throw new Error(message)
+            throw toAppError(err, FALLBACK_MESSAGES.unknown)
         } finally {
             setLoading(false)
         }

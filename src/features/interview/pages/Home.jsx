@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import "../style/home.scss"
 import { useInterview } from '../hooks/useInterview.js'
 import { useAuth } from '../../auth/hooks/useAuth'
+import { AppError } from '../../../lib/api'
 
 const JD_MAX = 5000
 
@@ -46,7 +47,15 @@ const Home = () => {
             toast.success("Interview plan ready!", { id: toastId })
             navigate(`/interview/${data._id}`)
         } catch (err) {
-            toast.error(err.message, { id: toastId })
+            if (err instanceof AppError && err.type === "network") {
+                toast.error("No connection. Please check your internet and try again.", { id: toastId })
+            } else if (err instanceof AppError && err.type === "rateLimit") {
+                toast.warning("Hourly limit reached. Please wait before generating another plan.", { id: toastId })
+            } else if (err instanceof AppError && err.type === "server") {
+                toast.error("The AI service is temporarily unavailable. Please try again shortly.", { id: toastId })
+            } else {
+                toast.error(err.message, { id: toastId })
+            }
         } finally {
             setGenerating(false)
         }
